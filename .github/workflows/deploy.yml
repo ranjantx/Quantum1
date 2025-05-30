@@ -29,7 +29,14 @@ jobs:
         run: |
           ibmcloud login --apikey "0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU" -r "us-south" -g "Default"
           ibmcloud cr login
-
+          - name: Delete existing Docker image (if exists)
+            run: |
+              if docker images | grep -q "$IMAGE_NAME"; then
+            docker rmi -f $IMAGE_NAME:latest || true
+            echo "Deleted existing image $IMAGE_NAME:latest"
+              else
+            echo "No existing image $IMAGE_NAME:latest found"
+              fi
       - name: Build & Push Docker image
         run: |
           docker build -t $IMAGE_NAME:latest .
@@ -38,38 +45,23 @@ jobs:
       - name: Deploy to Code Engine
         run: |
           ibmcloud ce project select --name quantum1-project 
-          ibmcloud ce project create --name quantum1-project || true
 
           # Create or update image registry secret (replace <IBM_CLOUD_API_KEY> with your actual API key or use a GitHub secret)
-            # Check if IBM_CLOUD_API_KEY is set and not blank
-            if [ -z "$IBM_CLOUD_API_KEY" ]; then
+          # Check if IBM_CLOUD_API_KEY is set and not blank
+          if [ -z "$IBM_CLOUD_API_KEY" ]; then
             echo "IBM_CLOUD_API_KEY is not set or is blank. Setting it to default value."
             export IBM_CLOUD_API_KEY="0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU"
-            else
+          else
             echo "IBM_CLOUD_API_KEY is set."
-            fi
-
-            ibmcloud ce registry create --name icr-secret --server us.icr.io --username iamapikey --password "$IBM_CLOUD_API_KEY" || true
-
-          # First-time deploy (if app does not exist):
-          ibmcloud ce application create --name quantum1-app --image $IMAGE_NAME:latest --cpu 1 --memory 2G --port 8080 --max-scale 2 --min-scale 1 --registry-secret icr-secret || true
-
-          # If app already exists (safe to run every time):
-          # Check if project exists
-          if ibmcloud ce project get --name quantum1-project > /dev/null 2>&1; then
-            echo "Project quantum1-project exists. Deleting it and skipping app creation."
-            ibmcloud ce project delete --name quantum1-project --force --ignore-not-found
-            exit 0
           fi
 
-          # Create project if it doesn't exist
-          ibmcloud ce project create --name quantum1-project
-
-          # Create or update image registry secret
           ibmcloud ce registry create --name icr-secret --server us.icr.io --username iamapikey --password "$IBM_CLOUD_API_KEY" || true
 
-          # First-time deploy (if app does not exist):
-          ibmcloud ce application create --name quantum1-app --image $IMAGE_NAME:latest --cpu 1 --memory 2G --port 8080 --max-scale 2 --min-scale 1 --registry-secret icr-secret || true
-
-          # If app already exists (safe to run every time):
-          ibmcloud ce application update --name quantum1-app --image $IMAGE_NAME:latest --registry-secret icr-secret
+          # Try to create the application, if it exists then update it
+          if ibmcloud ce application get --name quantum1-app > /dev/null 2>&1; then
+            echo "Application quantum1-app exists. Updating..."
+            ibmcloud ce application update --name quantum1-app --image $IMAGE_NAME:latest --registry-secret icr-secret
+          else
+            echo "Application quantum1-app does not exist. Creating..."
+            ibmcloud ce application create --name quantum1-app --image $IMAGE_NAME:latest --cpu 1 --memory 2G --port 8080 --max-scale 2 --min-scale 1 --registry-secret icr-secret
+          fi
