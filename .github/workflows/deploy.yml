@@ -29,14 +29,14 @@ jobs:
         run: |
           ibmcloud login --apikey "0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU" -r "us-south" -g "Default"
           ibmcloud cr login
-          - name: Delete existing Docker image (if exists)
-            run: |
-              if docker images | grep -q "$IMAGE_NAME"; then
+            - name: Delete existing Docker image (if exists)
+        run: |
+          if docker images | grep -q "$IMAGE_NAME"; then
             docker rmi -f $IMAGE_NAME:latest || true
             echo "Deleted existing image $IMAGE_NAME:latest"
-              else
+          else
             echo "No existing image $IMAGE_NAME:latest found"
-              fi
+          fi
       - name: Build & Push Docker image
         run: |
           docker build -t $IMAGE_NAME:latest .
