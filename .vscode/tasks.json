@@ -1,6 +1,34 @@
+// This tasks.json file is used to automate the setup and deployment of a FastAPI application with Qiskit on IBM Cloud Code Engine.
 {
   "version": "2.0.0",
   "tasks": [
+    {
+      "label": "Login to IBM Cloud",
+      "type": "shell",
+      "command": "ibmcloud login --apikey \"0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU\" -r \"us-south\" -g \"Default\" && ibmcloud cr login",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Create Code Engine Project",
+      "type": "shell",
+      "command": "ibmcloud ce project create --name quantum1-project",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Setup Code Engine",
+      "dependsOn": ["Login to IBM Cloud", "Create Code Engine Project"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
     {
       "label": "Build Docker Image",
       "type": "shell",
