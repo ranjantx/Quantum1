@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 env:
-  IMAGE_NAME: us.icr.io/fastapi-qiskit/Quantum1
+  IMAGE_NAME: us.icr.io/fastapi-qiskit/quantum1
   IBM_CLOUD_REGION: us-south
 
 jobs:
@@ -35,5 +35,5 @@ jobs:
 
       - name: Deploy to Code Engine
         run: |
-          ibmcloud ce project select --name Quantum1
+          ibmcloud ce project select --name quantum1
           ibmcloud ce application apply --file deploy.yaml
