@@ -25,7 +25,7 @@ jobs:
 
       - name: Authenticate with IBM Cloud
         run: |
-          ibmcloud login --apikey "${{ secrets.IBM_CLOUD_API_KEY }}" -r ${{ env.IBM_CLOUD_REGION }}
+          ibmcloud login --apikey "0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU" -r "us-south" -g "Default"
           ibmcloud cr login
 
       - name: Build & Push Docker image
