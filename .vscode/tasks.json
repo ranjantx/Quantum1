@@ -25,6 +25,8 @@
     },
     {
       "label": "Setup Code Engine",
+      "type": "shell",
+      "command": "ibmcloud ce app create --name quantum1-app --image us.icr.io/fastapi-qiskit/quantum1:latest",
       "dependsOn": ["Login to IBM Cloud", "Create Code Engine Project"],
       "dependsOrder": "sequence",
       "problemMatcher": []
@@ -42,8 +44,14 @@
       "problemMatcher": []
     },
     {
+      "label": "Deploy to Code Engine",
+      "type": "shell",
+      "command": "ibmcloud ce project select --name quantum1-project && ibmcloud ce application update --name quantum1-app --image us.icr.io/fastapi-qiskit/quantum1:latest",
+      "problemMatcher": []
+    },
+    {
       "label": "Run All Locally",
-      "dependsOn": ["Build Docker Image", "Push Docker Image"],
+      "dependsOn": ["Login to IBM Cloud", "Build Docker Image", "Push Docker Image", "Deploy to Code Engine"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     }
