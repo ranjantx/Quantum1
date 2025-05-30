@@ -19,9 +19,12 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
-      - name: Install IBM Cloud CLI
+      - name: Install IBM Cloud CLI & Plugins
         run: |
           curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+          ibmcloud plugin install container-registry -f
+          ibmcloud plugin install code-engine -f
+
 
       - name: Authenticate with IBM Cloud
         run: |
