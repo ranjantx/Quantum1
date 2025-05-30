@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: quantum1-container
-          image: <your-ibm-cloud-registry>/<namespace>/quantum1:latest
+          image: crn:v1:bluemix:public:container-registry:us-south:a/9c3be353ed4745e98a6cf06b9e9036fb::namespace:fastapi-qiskit/quantum1:latest
           ports:
             - containerPort: 8080
 ---
