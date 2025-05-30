@@ -51,7 +51,7 @@
     },
     {
       "label": "Run All Locally",
-      "dependsOn": ["Login to IBM Cloud", "Build Docker Image", "Push Docker Image", "Deploy to Code Engine"],
+      "dependsOn": ["Login to IBM Cloud", "Create Code Engine Project", "Setup Code Engine", "Build Docker Image", "Push Docker Image", "Deploy to Code Engine"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     }
