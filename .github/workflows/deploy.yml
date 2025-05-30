@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 env:
-  IMAGE_NAME: us.icr.io/fastapi-qiskit/quantum1
+  IMAGE_NAME: us.icr.io/fastapi-qiskit/Quantum1
   IBM_CLOUD_REGION: us-south
 
 jobs:
