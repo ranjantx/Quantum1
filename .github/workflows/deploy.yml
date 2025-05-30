@@ -1,5 +1,5 @@
-// This GitHub Actions workflow builds a Docker image for a FastAPI application,
-// pushes it to IBM Cloud Container Registry, and deploys it to IBM Code Engine. 
+# This GitHub Actions workflow builds a Docker image for a FastAPI application,
+# pushes it to IBM Cloud Container Registry, and deploys it to IBM Code Engine.
 name: Deploy to IBM Code Engine
 
 on:
