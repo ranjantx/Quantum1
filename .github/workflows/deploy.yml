@@ -1,3 +1,5 @@
+// This GitHub Actions workflow builds a Docker image for a FastAPI application,
+// pushes it to IBM Cloud Container Registry, and deploys it to IBM Code Engine. 
 name: Deploy to IBM Code Engine
 
 on:
@@ -6,7 +8,8 @@ on:
 
 env:
   IMAGE_NAME: us.icr.io/fastapi-qiskit/quantum1
-  IBM_CLOUD_REGION: us-south
+  IBM_CLOUD_REGION: ${{ secrets.IBM_CLOUD_REGION }}
+  IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
 
 jobs:
   build-and-deploy:
@@ -26,54 +29,52 @@ jobs:
           ibmcloud plugin install code-engine -f
 
       - name: Authenticate with IBM Cloud
-        env:
-          IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
-          IBM_CLOUD_REGION: ${{ secrets.IBM_CLOUD_REGION }}
         run: |
-          # Set defaults if secrets are not set or blank
-          if [ -z "$IBM_CLOUD_API_KEY" ]; then
-            echo "IBM_CLOUD_API_KEY is not set or is blank. Setting to default."
-            export IBM_CLOUD_API_KEY="0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU"
-          fi
-          if [ -z "$IBM_CLOUD_REGION" ]; then
-            echo "IBM_CLOUD_REGION is not set or is blank. Setting to default."
-            export IBM_CLOUD_REGION="us-south"
-          fi
-
           ibmcloud login --apikey "$IBM_CLOUD_API_KEY" -r "$IBM_CLOUD_REGION" -g "Default"
           ibmcloud cr login
 
+      - name: Clean local Docker image (optional)
+        run: |
           if docker images | grep -q "$IMAGE_NAME"; then
             docker rmi -f $IMAGE_NAME:latest || true
             echo "Deleted existing image $IMAGE_NAME:latest"
           else
             echo "No existing image $IMAGE_NAME:latest found"
           fi
+
       - name: Build & Push Docker image
         run: |
           docker build -t $IMAGE_NAME:latest .
           docker push $IMAGE_NAME:latest
 
-      - name: Deploy to Code Engine
+      - name: Deploy to IBM Code Engine
         run: |
-          ibmcloud ce project select --name quantum1-project 
+          ibmcloud ce project select --name quantum1-project
 
-          # Create or update image registry secret (replace <IBM_CLOUD_API_KEY> with your actual API key or use a GitHub secret)
-          # Check if IBM_CLOUD_API_KEY is set and not blank
-          if [ -z "$IBM_CLOUD_API_KEY" ]; then
-            echo "IBM_CLOUD_API_KEY is not set or is blank. Setting it to default value."
-            export IBM_CLOUD_API_KEY="0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU"
+          # Create registry secret only if it doesn't already exist
+          if ! ibmcloud ce registry get --name icr-secret > /dev/null 2>&1; then
+            echo "Creating registry access secret 'icr-secret'..."
+            ibmcloud ce registry create --name icr-secret --server us.icr.io --username iamapikey --password "$IBM_CLOUD_API_KEY"
           else
-            echo "IBM_CLOUD_API_KEY is set."
+            echo "Registry secret 'icr-secret' already exists. Skipping creation."
           fi
 
-          ibmcloud ce registry create --name icr-secret --server us.icr.io --username iamapikey --password "$IBM_CLOUD_API_KEY" || true
-
-          # Try to create the application, if it exists then update it
+          # Deploy application
           if ibmcloud ce application get --name quantum1-app > /dev/null 2>&1; then
-            echo "Application quantum1-app exists. Updating..."
-            ibmcloud ce application update --name quantum1-app --image $IMAGE_NAME:latest --registry-secret icr-secret
+            echo "Application 'quantum1-app' exists. Updating..."
+            ibmcloud ce application update \
+              --name quantum1-app \
+              --image $IMAGE_NAME:latest \
+              --registry-secret icr-secret
           else
-            echo "Application quantum1-app does not exist. Creating..."
-            ibmcloud ce application create --name quantum1-app --image $IMAGE_NAME:latest --cpu 1 --memory 2G --port 8080 --max-scale 2 --min-scale 1 --registry-secret icr-secret
+            echo "Creating application 'quantum1-app'..."
+            ibmcloud ce application create \
+              --name quantum1-app \
+              --image $IMAGE_NAME:latest \
+              --cpu 1 \
+              --memory 2G \
+              --port 8080 \
+              --max-scale 2 \
+              --min-scale 1 \
+              --registry-secret icr-secret
           fi
