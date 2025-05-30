@@ -1,0 +1,7 @@
+qiskit==2.0.0
+qiskit-ibm-provider==0.8.0
+qiskit-ibm-runtime==0.22.0
+qiskit-machine-learning==0.7.0
+numpy==1.23.5
+fastapi
+uvicorn
