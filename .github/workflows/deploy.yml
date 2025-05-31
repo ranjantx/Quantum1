@@ -79,8 +79,7 @@ jobs:
               --image $IMAGE_NAME:latest \
               --registry-secret icr-secret \
               --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN \
-              --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP \
-              --command "python -m uvicorn main:app --host 0.0.0.0 --port 8080"
+              --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP 
           else
             echo "Creating application 'quantum1-app'..."
             ibmcloud ce application create \
@@ -93,6 +92,5 @@ jobs:
               --min-scale 1 \
               --registry-secret icr-secret \
               --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN \
-              --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP \
-              --command "python -m uvicorn main:app --host 0.0.0.0 --port 8080"
+              --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP 
           fi
