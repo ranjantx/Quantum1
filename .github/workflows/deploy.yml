@@ -11,6 +11,7 @@ env:
   IBM_CLOUD_REGION: ${{ secrets.IBM_CLOUD_REGION }}
   IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
   IBM_QUANTUM_API_TOKEN: ${{ secrets.IBM_QUANTUM_API_TOKEN }}
+  IBM_RESOURCE_GROUP: ${{ secrets.IBM_RESOURCE_GROUP }}
 
 jobs:
   build-and-deploy:
@@ -31,7 +32,7 @@ jobs:
 
       - name: Authenticate with IBM Cloud
         run: |
-          ibmcloud login --apikey "$IBM_CLOUD_API_KEY" -r "$IBM_CLOUD_REGION" -g "Default"
+          ibmcloud login --apikey "$IBM_CLOUD_API_KEY" -r "$IBM_CLOUD_REGION" -g "$FASTAPI_RESOURCE_GROUP"
           ibmcloud cr login
 
       - name: Clean local Docker image (optional)
@@ -67,7 +68,9 @@ jobs:
               --name quantum1-app \
               --image $IMAGE_NAME:latest \
               --registry-secret icr-secret \
-              --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN
+              --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN \
+              --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP \
+              --command "uvicorn main:app --host 0.0.0.0 --port 8080"
           else
             echo "Creating application 'quantum1-app'..."
             ibmcloud ce application create \
@@ -78,5 +81,8 @@ jobs:
               --port 8080 \
               --max-scale 2 \
               --min-scale 1 \
-              --registry-secret icr-secret
+              --registry-secret icr-secret \
+              --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN \
+              --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP \
+              --command "uvicorn main:app --host 0.0.0.0 --port 8080"
           fi

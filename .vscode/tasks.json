@@ -3,32 +3,36 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Load Env Variables",
+      "type": "shell",
+      "command": "set -a && source .env.local && set +a",
+      "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "bash"
+        }
+      }
+    },
+    {
       "label": "Login to IBM Cloud",
       "type": "shell",
-      "command": "ibmcloud login --apikey \"0cSEDL8oFAOpnlzvJzwnyZZrJ8DAPn9hUSDuFWFe46uU\" -r \"us-south\" -g \"Default\" && ibmcloud cr login",
+      "command": "ibmcloud login --apikey $IBM_CLOUD_API_KEY -r $IBM_CLOUD_REGION -g $IBM_RESOURCE_GROUP && ibmcloud cr login",
+      "dependsOn": ["Load Env Variables"],
       "problemMatcher": [],
       "presentation": {
         "reveal": "always"
+      },
+      "options": {
+        "shell": {
+          "executable": "bash"
+        }
       }
     },
     {
       "label": "Create Code Engine Project",
       "type": "shell",
-      "command": "ibmcloud ce project create --name quantum1-project",
-      "problemMatcher": [],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "Setup Code Engine",
-      "type": "shell",
-      "command": "ibmcloud ce app create --name quantum1-app --image us.icr.io/fastapi-qiskit/quantum1:latest",
-      "dependsOn": ["Login to IBM Cloud", "Create Code Engine Project"],
-      "dependsOrder": "sequence",
+      "command": "ibmcloud ce project create --name quantum1-project || echo 'Project may already exist'",
+      "dependsOn": ["Login to IBM Cloud"],
       "problemMatcher": []
     },
     {
@@ -46,12 +50,18 @@
     {
       "label": "Deploy to Code Engine",
       "type": "shell",
-      "command": "ibmcloud ce project select --name quantum1-project && ibmcloud ce application update --name quantum1-app --image us.icr.io/fastapi-qiskit/quantum1:latest",
-      "problemMatcher": []
+      "command": "ibmcloud ce project select --name quantum1-project && ibmcloud ce application update --name quantum1-app --image us.icr.io/fastapi-qiskit/quantum1:latest --registry-secret icr-secret --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN",
+      "dependsOn": ["Push Docker Image"],
+      "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "bash"
+        }
+      }
     },
     {
       "label": "Run All Locally",
-      "dependsOn": ["Login to IBM Cloud", "Create Code Engine Project", "Setup Code Engine", "Build Docker Image", "Push Docker Image", "Deploy to Code Engine"],
+      "dependsOn": ["Login to IBM Cloud", "Create Code Engine Project", "Build Docker Image", "Push Docker Image", "Deploy to Code Engine"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     }
