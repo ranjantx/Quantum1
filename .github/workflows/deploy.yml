@@ -80,7 +80,7 @@ jobs:
               --registry-secret icr-secret \
               --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN \
               --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP \
-              --command "uvicorn main:app --host 0.0.0.0 --port 8080"
+              --command "python -m uvicorn main:app --host 0.0.0.0 --port 8080"
           else
             echo "Creating application 'quantum1-app'..."
             ibmcloud ce application create \
@@ -94,5 +94,5 @@ jobs:
               --registry-secret icr-secret \
               --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN \
               --env IBM_RESOURCE_GROUP=$IBM_RESOURCE_GROUP \
-              --command "uvicorn main:app --host 0.0.0.0 --port 8080"
+              --command "python -m uvicorn main:app --host 0.0.0.0 --port 8080"
           fi

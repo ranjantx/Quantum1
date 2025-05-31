@@ -4,4 +4,4 @@ qiskit-ibm-runtime==0.22.0
 qiskit-machine-learning==0.7.0
 numpy==1.23.5
 fastapi
-uvicorn
+uvicorn[standard]
