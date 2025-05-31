@@ -10,6 +10,7 @@ env:
   IMAGE_NAME: us.icr.io/fastapi-qiskit/quantum1
   IBM_CLOUD_REGION: ${{ secrets.IBM_CLOUD_REGION }}
   IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
+  IBM_QUANTUM_API_TOKEN: ${{ secrets.IBM_QUANTUM_API_TOKEN }}
 
 jobs:
   build-and-deploy:
@@ -65,7 +66,8 @@ jobs:
             ibmcloud ce application update \
               --name quantum1-app \
               --image $IMAGE_NAME:latest \
-              --registry-secret icr-secret
+              --registry-secret icr-secret \
+              --env IBM_QUANTUM_API_TOKEN=$IBM_QUANTUM_API_TOKEN
           else
             echo "Creating application 'quantum1-app'..."
             ibmcloud ce application create \
