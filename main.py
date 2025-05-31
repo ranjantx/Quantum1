@@ -34,18 +34,42 @@ service = QiskitRuntimeService(channel="ibm_cloud", token=IBM_QUANTUM_API_TOKEN)
 @app.get("/predict")
 def quantum_stock_prediction():
     try:
-        qc = QuantumCircuit(1)
+        # Check if the service is initialized correctly
+        if not service:
+            raise Exception("QiskitRuntimeService is not initialized. Check your IBM Quantum API token.")
+        if not isinstance(service, QiskitRuntimeService):
+            raise Exception("Invalid QiskitRuntimeService instance. Ensure you are using the correct service.")
+
+        logging.info("Creating quantum circuit for stock prediction...")
+
+        # define the bell state circuit to run on the IBM Quantum backend using qiskit 2.0.0
+        qc = QuantumCircuit(2, 2)
         qc.h(0)
+        qc.cx(0, 1)
+        qc.measure([0, 1], [0, 1])
+        logging.info("Quantum circuit created successfully.")
+        logging.info("Running the quantum circuit on IBM Quantum backend...")
+        # Run the circuit using the Qiskit-ibm-runtime 0.40.0
+        if not service:
+            raise Exception("QiskitRuntimeService is not initialized. Check your IBM Quantum API token.")
+        if not isinstance(service, QiskitRuntimeService):
+            raise Exception("Invalid QiskitRuntimeService instance. Ensure you are using the correct service.")
+        if not service.backends():
+            raise Exception("No available backends found.")
+        backend = service.get_backend("ibm_perth")  # Use a specific backend, e.g., "ibm_perth"
+        if not backend:
+            raise Exception("Backend not found. Ensure the backend name is correct and available.")
+            # logging.info("Creating a sampler instance...")
+            # sampler = SamplerV2()
+            # job = sampler.run(circuits=[qc], shots=1024)
+            # result = job.result()
 
-        # Use the SamplerV2 primitive (service is set as default)
-        sampler = SamplerV2()
-        job = sampler.run(circuits=[qc], shots=1024)
-        result = job.result()
-
-        counts = result.quasi_dists[0].binary_probabilities()
-        return {"prediction": counts}
+            # counts = result.quasi_dists[0].binary_probabilities()
+            # return {"prediction": counts}
     except Exception as e:
         return {"error": str(e)}
+    
+
 @app.get("/")
 def root():
     return {"message": "Welcome to the Quantum Stock Prediction API. Use /predict to get predictions."}
