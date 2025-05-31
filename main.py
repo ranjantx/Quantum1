@@ -37,7 +37,8 @@ def quantum_stock_prediction():
         qc = QuantumCircuit(1)
         qc.h(0)
 
-        sampler = SamplerV2(service=service)
+        # Use the SamplerV2 primitive (service is set as default)
+        sampler = SamplerV2()
         job = sampler.run(circuits=[qc], shots=1024)
         result = job.result()
 
