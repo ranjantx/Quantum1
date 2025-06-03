@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from qiskit import QuantumCircuit
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2
+from qiskit_ibm_runtime import Sampler
 import os
 import json
 import sys
@@ -29,19 +30,29 @@ if not IBM_QUANTUM_API_TOKEN:
 app = FastAPI()
 
 IBM_QUANTUM_API_TOKEN = os.getenv("IBM_QUANTUM_API_TOKEN") or "<your-quantum-api-token>"
+logging.info("Initializing QiskitRuntimeService with IBM Quantum API token...", IBM_QUANTUM_API_TOKEN=IBM_QUANTUM_API_TOKEN)
 service = QiskitRuntimeService(channel="ibm_cloud", token=IBM_QUANTUM_API_TOKEN)
 
+        # Check if the service is initialized correctly
+if not service:
+    raise Exception("QiskitRuntimeService is not initialized. Check your IBM Quantum API token.")
+if not isinstance(service, QiskitRuntimeService):
+    raise Exception("Invalid QiskitRuntimeService instance. Ensure you are using the correct service.")
+
+logging.info("Creating quantum circuit for stock prediction...")
+        # Print available backends for debugging
+logging.info("Available backends:")
+if not service.backends():
+            raise Exception("No available backends found. Ensure your IBM Quantum API token is valid and you have access to the backends.")
+        # Print the backends for debugging
+logging.info("Available backends: %s", service.backends())
+        # Uncomment the line below to see the backends in the console
+print(service.backends())   
+        
 @app.get("/predict")
 def quantum_stock_prediction():
     try:
-        # Check if the service is initialized correctly
-        if not service:
-            raise Exception("QiskitRuntimeService is not initialized. Check your IBM Quantum API token.")
-        if not isinstance(service, QiskitRuntimeService):
-            raise Exception("Invalid QiskitRuntimeService instance. Ensure you are using the correct service.")
-
-        logging.info("Creating quantum circuit for stock prediction...")
-
+        
         # define the bell state circuit to run on the IBM Quantum backend using qiskit 2.0.0
         qc = QuantumCircuit(2, 2)
         qc.h(0)
@@ -59,6 +70,13 @@ def quantum_stock_prediction():
         backend = service.get_backend("ibm_perth")  # Use a specific backend, e.g., "ibm_perth"
         if not backend:
             raise Exception("Backend not found. Ensure the backend name is correct and available.")
+        # Use Sampler inside service.run()
+        options = {"backend": "ibm_perth"}
+        sampler = Sampler(circuits=[qc], options=options)
+        job = service.run(sampler, shots=1024)
+        result = job.result()
+        counts = result.quasi_dists[0].binary_probabilities()
+        print(counts)    
             # logging.info("Creating a sampler instance...")
             # sampler = SamplerV2()
             # job = sampler.run(circuits=[qc], shots=1024)
